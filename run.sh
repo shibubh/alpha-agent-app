@@ -9,7 +9,8 @@ if [ $? -eq 0 ]; then
     echo ""
     echo "Build successful! Starting the application..."
     echo ""
-    dotnet run --project src/AgentOrchestration.CLI/AgentOrchestration.CLI.csproj --configuration Release
+    cd src/AgentOrchestration.CLI
+    dotnet run --configuration Release
 else
     echo ""
     echo "Build failed. Please check the error messages above."
