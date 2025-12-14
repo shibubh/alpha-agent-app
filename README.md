@@ -125,7 +125,7 @@ dotnet run --project src/AgentOrchestration.CLI/AgentOrchestration.CLI.csproj --
 
 In JSON mode:
 - The agent outputs structured JSON instead of formatted console text
-- Each task includes a `command` field with executable terminal commands when applicable
+- Each task includes a `commands` array with executable terminal commands when applicable
 - The output can be parsed by other tools for automated execution
 - No interactive prompts or colored output
 

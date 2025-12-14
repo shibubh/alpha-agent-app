@@ -332,8 +332,8 @@ dotnet run --project src/AgentOrchestration.CLI/AgentOrchestration.CLI.csproj --
 
 - Planning Agent now focuses on WHAT to build (features, UI, content) and provides executable commands when applicable
 - JSON output mode (`--json` or `-j`) provides machine-readable output for automation
-- Tasks include `command` field with terminal commands for installation, setup, and execution steps
-- Descriptive tasks without commands have `null` or empty command fields
+- Tasks include `commands` array with terminal commands for installation, setup, and execution steps
+- Descriptive tasks without commands have `null` or empty commands array
 - No tech stack required - planning is technology-agnostic
 - Plans describe user-facing features and design elements in detail
 - Development and coding tasks are handled separately by a Coding Agent

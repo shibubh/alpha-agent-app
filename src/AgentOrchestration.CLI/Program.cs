@@ -7,13 +7,17 @@ using AgentOrchestration.Core.Models;
 
 namespace AgentOrchestration.CLI;
 
-class Program
+internal static class JsonConfiguration
 {
-    private static readonly System.Text.Json.JsonSerializerOptions JsonOptions = new()
+    public static readonly System.Text.Json.JsonSerializerOptions Options = new()
     {
         WriteIndented = true,
         PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase
     };
+}
+
+class Program
+{
 
     static async Task<int> Main(string[] args)
     {
@@ -55,7 +59,7 @@ class Program
                     success = false,
                     error = ex.Message
                 };
-                Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(errorOutput, JsonOptions));
+                Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(errorOutput, JsonConfiguration.Options));
             }
             else
             {
@@ -128,12 +132,6 @@ public class Orchestrator : IOrchestrator
     private readonly ITaskExecutor _taskExecutor;
     private readonly IAIProvider _aiProvider;
 
-    private static readonly System.Text.Json.JsonSerializerOptions JsonOptions = new()
-    {
-        WriteIndented = true,
-        PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase
-    };
-
     public Orchestrator(
         IPlanningAgent planningAgent,
         ITaskExecutor taskExecutor,
@@ -163,7 +161,7 @@ public class Orchestrator : IOrchestrator
             if (jsonOutput)
             {
                 var errorOutput = new { success = false, error = "Task description cannot be empty" };
-                Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(errorOutput, JsonOptions));
+                Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(errorOutput, JsonConfiguration.Options));
             }
             else
             {
@@ -197,7 +195,7 @@ public class Orchestrator : IOrchestrator
             if (jsonOutput)
             {
                 var errorOutput = new { success = false, error = $"Failed to create plan: {ex.Message}" };
-                Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(errorOutput, JsonOptions));
+                Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(errorOutput, JsonConfiguration.Options));
             }
             else
             {
@@ -314,7 +312,7 @@ public class Orchestrator : IOrchestrator
             }
         };
 
-        Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(output, JsonOptions));
+        Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(output, JsonConfiguration.Options));
     }
 
     private void DisplayResults(ExecutionPlan plan)
