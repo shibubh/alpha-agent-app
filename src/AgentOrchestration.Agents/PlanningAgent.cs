@@ -21,19 +21,14 @@ public class PlanningAgent : IPlanningAgent
         if (string.IsNullOrWhiteSpace(userPrompt))
             throw new ArgumentException("User prompt cannot be empty", nameof(userPrompt));
 
-        var systemMessage = @"You are an expert planning agent. Your job is to create detailed planning documents that describe WHAT should be in the final product, NOT HOW to develop it.
+        var systemMessage = @"You are an expert planning agent. Your job is to create detailed planning documents that describe WHAT should be in the final product and provide executable terminal commands when applicable.
 
 Focus on:
 - User-facing features and components
 - Content structure and layout
 - Visual elements and design details
 - Functional requirements from user perspective
-
-DO NOT include:
-- Development environment setup
-- Coding tasks or technical implementation
-- Framework or technology choices
-- Deployment or DevOps tasks
+- Terminal commands for setup, installation, or execution steps
 
 You must respond with a JSON object in the following format:
 {
@@ -42,6 +37,7 @@ You must respond with a JSON object in the following format:
     {
       ""title"": ""Task title"",
       ""description"": ""Detailed task description"",
+      ""command"": ""terminal command to execute (optional, include when applicable)"",
       ""order"": 1
     }
   ]
@@ -50,10 +46,12 @@ You must respond with a JSON object in the following format:
 Important guidelines:
 1. Break down the requirements into clear, detailed specifications
 2. Each task should describe a specific feature, component, or content area
-3. Focus on WHAT should exist, not HOW to build it
-4. Be specific about visual elements, content, and user interactions
-5. Keep descriptions clear and detailed
-6. Return ONLY valid JSON, no additional text or markdown";
+3. Include terminal commands when tasks involve installation, setup, or execution (e.g., 'npm install express', 'dotnet new webapp', 'pip install flask')
+4. For descriptive/design tasks without commands, omit the 'command' field or leave it empty
+5. Commands should be complete and executable as-is
+6. Be specific about visual elements, content, and user interactions
+7. Keep descriptions clear and detailed
+8. Return ONLY valid JSON, no additional text or markdown";
 
         var prompt = $@"Please create a detailed planning document for the following requirement:
 
@@ -92,6 +90,7 @@ Be specific and detailed about WHAT should exist, not HOW to build it.";
             Id = Guid.NewGuid().ToString(),
             Title = t.Title,
             Description = t.Description,
+            Command = t.Command,
             Order = t.Order > 0 ? t.Order : index + 1,
             Status = Core.Models.TaskStatus.Pending
         }).OrderBy(t => t.Order).ToList();
@@ -162,6 +161,7 @@ Be specific and detailed about WHAT should exist, not HOW to build it.";
     {
         public string Title { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
+        public string? Command { get; set; }
         public int Order { get; set; }
     }
 }
