@@ -195,13 +195,17 @@ echo "Create a Node.js Express API" | dotnet run --project src/AgentOrchestratio
       {
         "title": "Initialize Project",
         "description": "Create package.json",
+        "preCommand": "node --version",
         "command": "npm init -y",
+        "postCommand": "test -f package.json && echo 'Success'",
         "order": 1
       },
       {
         "title": "Install Express",
         "description": "Install Express framework",
+        "preCommand": null,
         "command": "npm install express",
+        "postCommand": "npm list express",
         "order": 2
       }
     ]
@@ -209,12 +213,24 @@ echo "Create a Node.js Express API" | dotnet run --project src/AgentOrchestratio
 }
 ```
 
+**Understanding Command Types:**
+- **preCommand**: Runs before the main command to check prerequisites (e.g., `node --version`)
+- **command**: The main command to execute (e.g., `npm install express`)
+- **postCommand**: Runs after to verify success (e.g., `npm list express`)
+
 You can then parse this JSON and execute the commands automatically:
 ```bash
-# Example using jq to extract and run commands
-dotnet run --project src/AgentOrchestration.CLI/AgentOrchestration.CLI.csproj -- --json < input.txt | \
-  jq -r '.plan.tasks[].command | select(. != null)' | \
-  while read cmd; do eval "$cmd"; done
+# Example using jq to extract and run all commands in sequence
+echo "Create a Node.js API" | dotnet run --project src/AgentOrchestration.CLI/AgentOrchestration.CLI.csproj -- --json | \
+  jq -c '.plan.tasks[]' | while read task; do
+    pre=$(echo "$task" | jq -r '.preCommand // empty')
+    cmd=$(echo "$task" | jq -r '.command // empty')
+    post=$(echo "$task" | jq -r '.postCommand // empty')
+    
+    [ -n "$pre" ] && echo "Pre: $pre" && eval "$pre"
+    [ -n "$cmd" ] && echo "Command: $cmd" && eval "$cmd"
+    [ -n "$post" ] && echo "Post: $post" && eval "$post"
+  done
 ```
 
 ## Next Steps

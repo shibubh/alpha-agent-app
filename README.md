@@ -189,7 +189,9 @@ When using `--json` flag, the output is machine-readable:
         "id": "task-1",
         "title": "Initialize Node.js Project",
         "description": "Set up a new Node.js project with package.json",
+        "preCommand": "node --version",
         "command": "npm init -y",
+        "postCommand": "test -f package.json && echo 'package.json created successfully'",
         "order": 1,
         "status": "Pending"
       },
@@ -197,7 +199,9 @@ When using `--json` flag, the output is machine-readable:
         "id": "task-2",
         "title": "Install Express Framework",
         "description": "Install Express.js and required dependencies",
+        "preCommand": null,
         "command": "npm install express",
+        "postCommand": "npm list express",
         "order": 2,
         "status": "Pending"
       },
@@ -205,7 +209,9 @@ When using `--json` flag, the output is machine-readable:
         "id": "task-3",
         "title": "Install Development Dependencies",
         "description": "Install nodemon for development",
+        "preCommand": null,
         "command": "npm install --save-dev nodemon",
+        "postCommand": "npm list nodemon",
         "order": 3,
         "status": "Pending"
       },
@@ -213,7 +219,9 @@ When using `--json` flag, the output is machine-readable:
         "id": "task-4",
         "title": "Create API Endpoints",
         "description": "Define REST API endpoints for GET, POST, PUT, DELETE operations with proper routing and middleware",
+        "preCommand": null,
         "command": null,
+        "postCommand": null,
         "order": 4,
         "status": "Pending"
       },
@@ -221,7 +229,9 @@ When using `--json` flag, the output is machine-readable:
         "id": "task-5",
         "title": "Start Development Server",
         "description": "Run the Express server in development mode",
+        "preCommand": "test -f server.js || echo 'Warning: server.js not found'",
         "command": "npm run dev",
+        "postCommand": "curl -s http://localhost:3000/health",
         "order": 5,
         "status": "Pending"
       }
@@ -232,8 +242,10 @@ When using `--json` flag, the output is machine-readable:
 
 Notice that:
 - Tasks with installation or setup steps include executable `command` fields
+- **preCommand**: Runs before the main command to check prerequisites or prepare the environment
+- **postCommand**: Runs after the main command to verify success or test the result
 - Descriptive tasks (like "Create API Endpoints") have `null` or empty commands
-- The JSON can be parsed by automation tools to execute commands automatically
+- The JSON can be parsed by automation tools to execute commands automatically in sequence (pre → command → post)
 
 ## 🏛️ System Components
 

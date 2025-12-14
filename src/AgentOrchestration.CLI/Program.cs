@@ -256,10 +256,22 @@ public class Orchestrator : IOrchestrator
             Console.WriteLine($"{task.Order}. {task.Title}");
             Console.ResetColor();
             Console.WriteLine($"   {task.Description}");
+            if (!string.IsNullOrWhiteSpace(task.PreCommand))
+            {
+                Console.ForegroundColor = ConsoleColor.Magenta;
+                Console.WriteLine($"   📋 Pre-Command: {task.PreCommand}");
+                Console.ResetColor();
+            }
             if (!string.IsNullOrWhiteSpace(task.Command))
             {
                 Console.ForegroundColor = ConsoleColor.Green;
                 Console.WriteLine($"   💻 Command: {task.Command}");
+                Console.ResetColor();
+            }
+            if (!string.IsNullOrWhiteSpace(task.PostCommand))
+            {
+                Console.ForegroundColor = ConsoleColor.Cyan;
+                Console.WriteLine($"   ✅ Post-Command: {task.PostCommand}");
                 Console.ResetColor();
             }
             Console.WriteLine();
@@ -284,7 +296,9 @@ public class Orchestrator : IOrchestrator
                     id = t.Id,
                     title = t.Title,
                     description = t.Description,
+                    preCommand = t.PreCommand,
                     command = t.Command,
+                    postCommand = t.PostCommand,
                     order = t.Order,
                     status = t.Status.ToString()
                 }).ToList()

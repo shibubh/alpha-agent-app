@@ -29,6 +29,7 @@ Focus on:
 - Visual elements and design details
 - Functional requirements from user perspective
 - Terminal commands for setup, installation, or execution steps
+- Pre-commands for prerequisites and post-commands for verification
 
 You must respond with a JSON object in the following format:
 {
@@ -37,7 +38,9 @@ You must respond with a JSON object in the following format:
     {
       ""title"": ""Task title"",
       ""description"": ""Detailed task description"",
-      ""command"": ""terminal command to execute (optional, include when applicable)"",
+      ""preCommand"": ""command to run before main task (optional, e.g., check prerequisites)"",
+      ""command"": ""main terminal command to execute (optional, include when applicable)"",
+      ""postCommand"": ""command to verify or run after main task (optional, e.g., verify installation)"",
       ""order"": 1
     }
   ]
@@ -47,11 +50,13 @@ Important guidelines:
 1. Break down the requirements into clear, detailed specifications
 2. Each task should describe a specific feature, component, or content area
 3. Include terminal commands when tasks involve installation, setup, or execution (e.g., 'npm install express', 'dotnet new webapp', 'pip install flask')
-4. For descriptive/design tasks without commands, omit the 'command' field or leave it empty
-5. Commands should be complete and executable as-is
-6. Be specific about visual elements, content, and user interactions
-7. Keep descriptions clear and detailed
-8. Return ONLY valid JSON, no additional text or markdown";
+4. Use preCommand for checking prerequisites (e.g., 'node --version', 'which python3', 'dotnet --version')
+5. Use postCommand for verification (e.g., 'npm list express', 'flask --version', 'dotnet test', 'curl http://localhost:3000')
+6. For descriptive/design tasks without commands, omit the command fields or leave them empty
+7. Commands should be complete and executable as-is
+8. Be specific about visual elements, content, and user interactions
+9. Keep descriptions clear and detailed
+10. Return ONLY valid JSON, no additional text or markdown";
 
         var prompt = $@"Please create a detailed planning document for the following requirement:
 
@@ -90,7 +95,9 @@ Be specific and detailed about WHAT should exist, not HOW to build it.";
             Id = Guid.NewGuid().ToString(),
             Title = t.Title,
             Description = t.Description,
+            PreCommand = t.PreCommand,
             Command = t.Command,
+            PostCommand = t.PostCommand,
             Order = t.Order > 0 ? t.Order : index + 1,
             Status = Core.Models.TaskStatus.Pending
         }).OrderBy(t => t.Order).ToList();
@@ -161,7 +168,9 @@ Be specific and detailed about WHAT should exist, not HOW to build it.";
     {
         public string Title { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
+        public string? PreCommand { get; set; }
         public string? Command { get; set; }
+        public string? PostCommand { get; set; }
         public int Order { get; set; }
     }
 }
