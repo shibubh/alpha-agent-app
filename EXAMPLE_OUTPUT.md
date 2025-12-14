@@ -235,18 +235,23 @@ dotnet run --project src/AgentOrchestration.CLI/AgentOrchestration.CLI.csproj --
         "id": "task-1",
         "title": "Set Up Python Virtual Environment",
         "description": "Create and activate a Python virtual environment for isolated dependencies",
-        "preCommand": "python3 --version",
-        "command": "python3 -m venv venv && source venv/bin/activate",
+        "commands": [
+          "python3 -m venv venv",
+          "source venv/bin/activate"
+        ],
         "postCommand": "which python",
         "order": 1,
         "status": "Pending"
       },
       {
         "id": "task-2",
-        "title": "Install Flask Framework",
-        "description": "Install Flask web framework",
-        "preCommand": null,
-        "command": "pip install flask",
+        "title": "Install Flask Framework and Extensions",
+        "description": "Install Flask web framework and essential extensions",
+        "commands": [
+          "pip install flask",
+          "pip install flask-cors",
+          "pip install python-dotenv"
+        ],
         "postCommand": "flask --version",
         "order": 2,
         "status": "Pending"
@@ -255,8 +260,11 @@ dotnet run --project src/AgentOrchestration.CLI/AgentOrchestration.CLI.csproj --
         "id": "task-3",
         "title": "Install Database Packages",
         "description": "Install Flask-SQLAlchemy and database drivers",
-        "preCommand": null,
-        "command": "pip install flask-sqlalchemy sqlalchemy",
+        "commands": [
+          "pip install flask-sqlalchemy",
+          "pip install sqlalchemy",
+          "pip install flask-migrate"
+        ],
         "postCommand": "pip list | grep -i sqlalchemy",
         "order": 3,
         "status": "Pending"
@@ -265,8 +273,7 @@ dotnet run --project src/AgentOrchestration.CLI/AgentOrchestration.CLI.csproj --
         "id": "task-4",
         "title": "Define Application Routes",
         "description": "Create Flask routes for home page, about page, and API endpoints with proper HTTP methods",
-        "preCommand": null,
-        "command": null,
+        "commands": null,
         "postCommand": null,
         "order": 4,
         "status": "Pending"
@@ -275,8 +282,7 @@ dotnet run --project src/AgentOrchestration.CLI/AgentOrchestration.CLI.csproj --
         "id": "task-5",
         "title": "Configure Database Models",
         "description": "Define SQLAlchemy models for database tables with relationships and constraints",
-        "preCommand": null,
-        "command": null,
+        "commands": null,
         "postCommand": null,
         "order": 5,
         "status": "Pending"
@@ -285,8 +291,11 @@ dotnet run --project src/AgentOrchestration.CLI/AgentOrchestration.CLI.csproj --
         "id": "task-6",
         "title": "Initialize Database",
         "description": "Create database tables from models",
-        "preCommand": "test -f app.py || echo 'Warning: app.py not found'",
-        "command": "flask db init && flask db migrate && flask db upgrade",
+        "commands": [
+          "flask db init",
+          "flask db migrate -m 'Initial migration'",
+          "flask db upgrade"
+        ],
         "postCommand": "test -d migrations && echo 'Database initialized successfully'",
         "order": 6,
         "status": "Pending"
@@ -295,8 +304,11 @@ dotnet run --project src/AgentOrchestration.CLI/AgentOrchestration.CLI.csproj --
         "id": "task-7",
         "title": "Run Development Server",
         "description": "Start Flask development server with debugging enabled",
-        "preCommand": "export FLASK_APP=app.py && export FLASK_ENV=development",
-        "command": "flask run --debug",
+        "commands": [
+          "export FLASK_APP=app.py",
+          "export FLASK_ENV=development",
+          "flask run --debug"
+        ],
         "postCommand": "curl -s http://localhost:5000/health || echo 'Server starting...'",
         "order": 7,
         "status": "Pending"
@@ -309,12 +321,12 @@ dotnet run --project src/AgentOrchestration.CLI/AgentOrchestration.CLI.csproj --
 ### Benefits of JSON Output
 
 - **Automation-Ready**: Other tools can parse and execute commands automatically
-- **Terminal Commands**: Each task includes executable commands (e.g., `pip install flask`) instead of generic descriptions
-- **Pre-Commands**: Check prerequisites and prepare the environment before execution (e.g., `python3 --version`)
-- **Post-Commands**: Verify successful execution and test results after completion (e.g., `flask --version`, `curl http://localhost:5000`)
+- **Terminal Commands Array**: Each task includes an array of executable commands to run sequentially
+- **Multiple Commands**: Group related commands together (e.g., `["pip install flask", "pip install flask-cors"]`)
+- **Post-Commands**: Verify successful execution and test results after all commands complete (e.g., `flask --version`, `curl http://localhost:5000`)
 - **Machine-Readable**: Perfect for CI/CD pipelines and automation workflows
 - **Structured Data**: Easy to integrate with task runners, build systems, or orchestration tools
-- **Complete Workflow**: Pre → Command → Post sequence ensures proper setup, execution, and verification
+- **Sequential Execution**: Commands array ensures proper execution order within each task
 
 ## Notes
 

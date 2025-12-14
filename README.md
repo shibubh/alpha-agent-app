@@ -189,18 +189,20 @@ When using `--json` flag, the output is machine-readable:
         "id": "task-1",
         "title": "Initialize Node.js Project",
         "description": "Set up a new Node.js project with package.json",
-        "preCommand": "node --version",
-        "command": "npm init -y",
+        "commands": ["npm init -y"],
         "postCommand": "test -f package.json && echo 'package.json created successfully'",
         "order": 1,
         "status": "Pending"
       },
       {
         "id": "task-2",
-        "title": "Install Express Framework",
+        "title": "Install Express Framework and Middleware",
         "description": "Install Express.js and required dependencies",
-        "preCommand": null,
-        "command": "npm install express",
+        "commands": [
+          "npm install express",
+          "npm install body-parser",
+          "npm install cors"
+        ],
         "postCommand": "npm list express",
         "order": 2,
         "status": "Pending"
@@ -209,8 +211,7 @@ When using `--json` flag, the output is machine-readable:
         "id": "task-3",
         "title": "Install Development Dependencies",
         "description": "Install nodemon for development",
-        "preCommand": null,
-        "command": "npm install --save-dev nodemon",
+        "commands": ["npm install --save-dev nodemon"],
         "postCommand": "npm list nodemon",
         "order": 3,
         "status": "Pending"
@@ -219,8 +220,7 @@ When using `--json` flag, the output is machine-readable:
         "id": "task-4",
         "title": "Create API Endpoints",
         "description": "Define REST API endpoints for GET, POST, PUT, DELETE operations with proper routing and middleware",
-        "preCommand": null,
-        "command": null,
+        "commands": null,
         "postCommand": null,
         "order": 4,
         "status": "Pending"
@@ -229,8 +229,7 @@ When using `--json` flag, the output is machine-readable:
         "id": "task-5",
         "title": "Start Development Server",
         "description": "Run the Express server in development mode",
-        "preCommand": "test -f server.js || echo 'Warning: server.js not found'",
-        "command": "npm run dev",
+        "commands": ["npm run dev"],
         "postCommand": "curl -s http://localhost:3000/health",
         "order": 5,
         "status": "Pending"
@@ -241,11 +240,12 @@ When using `--json` flag, the output is machine-readable:
 ```
 
 Notice that:
-- Tasks with installation or setup steps include executable `command` fields
-- **preCommand**: Runs before the main command to check prerequisites or prepare the environment
-- **postCommand**: Runs after the main command to verify success or test the result
+- Tasks with installation or setup steps include executable `commands` array
+- **commands**: An array of commands to execute sequentially (e.g., install multiple packages)
+- **postCommand**: Runs after all commands to verify success or test the result
+- Multiple related commands can be grouped in a single task's commands array
 - Descriptive tasks (like "Create API Endpoints") have `null` or empty commands
-- The JSON can be parsed by automation tools to execute commands automatically in sequence (pre → command → post)
+- The JSON can be parsed by automation tools to execute commands automatically in sequence
 
 ## 🏛️ System Components
 
