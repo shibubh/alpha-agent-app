@@ -109,6 +109,26 @@ dotnet build AgentOrchestration.sln
 dotnet run --project src/AgentOrchestration.CLI/AgentOrchestration.CLI.csproj
 ```
 
+### JSON Output Mode
+
+For automated workflows, you can use JSON output mode to get machine-readable results:
+
+```bash
+dotnet run --project src/AgentOrchestration.CLI/AgentOrchestration.CLI.csproj -- --json
+```
+
+Or use the short flag:
+
+```bash
+dotnet run --project src/AgentOrchestration.CLI/AgentOrchestration.CLI.csproj -- -j
+```
+
+In JSON mode:
+- The agent outputs structured JSON instead of formatted console text
+- Each task includes a `command` field with executable terminal commands when applicable
+- The output can be parsed by other tools for automated execution
+- No interactive prompts or colored output
+
 ### Example Session
 
 ```
@@ -149,6 +169,71 @@ Please describe your task:
 ℹ️  This detailed plan describes WHAT should be built.
 ℹ️  Next step: Pass this plan to a Coding Agent to handle implementation.
 ```
+
+### Example JSON Output
+
+When using `--json` flag, the output is machine-readable:
+
+```json
+{
+  "success": true,
+  "plan": {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "goal": "Create a Node.js Express REST API",
+    "description": "A REST API with Express framework for handling CRUD operations",
+    "techStack": "Not applicable - Planning phase",
+    "status": "Created",
+    "createdAt": "2024-12-14T02:00:00Z",
+    "tasks": [
+      {
+        "id": "task-1",
+        "title": "Initialize Node.js Project",
+        "description": "Set up a new Node.js project with package.json",
+        "command": "npm init -y",
+        "order": 1,
+        "status": "Pending"
+      },
+      {
+        "id": "task-2",
+        "title": "Install Express Framework",
+        "description": "Install Express.js and required dependencies",
+        "command": "npm install express",
+        "order": 2,
+        "status": "Pending"
+      },
+      {
+        "id": "task-3",
+        "title": "Install Development Dependencies",
+        "description": "Install nodemon for development",
+        "command": "npm install --save-dev nodemon",
+        "order": 3,
+        "status": "Pending"
+      },
+      {
+        "id": "task-4",
+        "title": "Create API Endpoints",
+        "description": "Define REST API endpoints for GET, POST, PUT, DELETE operations with proper routing and middleware",
+        "command": null,
+        "order": 4,
+        "status": "Pending"
+      },
+      {
+        "id": "task-5",
+        "title": "Start Development Server",
+        "description": "Run the Express server in development mode",
+        "command": "npm run dev",
+        "order": 5,
+        "status": "Pending"
+      }
+    ]
+  }
+}
+```
+
+Notice that:
+- Tasks with installation or setup steps include executable `command` fields
+- Descriptive tasks (like "Create API Endpoints") have `null` or empty commands
+- The JSON can be parsed by automation tools to execute commands automatically
 
 ## 🏛️ System Components
 
