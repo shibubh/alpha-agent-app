@@ -66,6 +66,19 @@ dotnet run
 dotnet run --project src/AgentOrchestration.CLI/AgentOrchestration.CLI.csproj
 ```
 
+### Option D: JSON Output Mode (For Automation)
+```bash
+dotnet run --project src/AgentOrchestration.CLI/AgentOrchestration.CLI.csproj -- --json
+# or use the short flag:
+dotnet run --project src/AgentOrchestration.CLI/AgentOrchestration.CLI.csproj -- -j
+```
+
+**JSON Mode Features:**
+- Machine-readable output for automation tools
+- Each task includes executable terminal commands when applicable
+- No interactive prompts or colored output
+- Perfect for CI/CD pipelines and task automation
+
 ## Step 5: Use the System
 
 When the application starts:
@@ -162,12 +175,55 @@ To switch from ChatGPT to Claude or vice versa:
 - Ensure .NET 10 SDK is installed: `dotnet --version`
 - Clean and rebuild: `dotnet clean && dotnet build`
 
+## Using JSON Output for Automation
+
+The system supports a JSON output mode that's perfect for automation:
+
+```bash
+# Pipe your task description and get JSON output
+echo "Create a Node.js Express API" | dotnet run --project src/AgentOrchestration.CLI/AgentOrchestration.CLI.csproj -- --json
+```
+
+**Sample JSON Output:**
+```json
+{
+  "success": true,
+  "plan": {
+    "goal": "Create a Node.js Express API",
+    "description": "REST API with Express framework",
+    "tasks": [
+      {
+        "title": "Initialize Project",
+        "description": "Create package.json",
+        "command": "npm init -y",
+        "order": 1
+      },
+      {
+        "title": "Install Express",
+        "description": "Install Express framework",
+        "command": "npm install express",
+        "order": 2
+      }
+    ]
+  }
+}
+```
+
+You can then parse this JSON and execute the commands automatically:
+```bash
+# Example using jq to extract and run commands
+dotnet run --project src/AgentOrchestration.CLI/AgentOrchestration.CLI.csproj -- --json < input.txt | \
+  jq -r '.plan.tasks[].command | select(. != null)' | \
+  while read cmd; do eval "$cmd"; done
+```
+
 ## Next Steps
 
 - Read the full [README.md](README.md) for detailed architecture information
+- Check [EXAMPLE_OUTPUT.md](EXAMPLE_OUTPUT.md) for more JSON output examples
 - Customize the AI prompts in the agent implementations
 - Extend the system with additional agents
-- Integrate with your CI/CD pipeline
+- Integrate with your CI/CD pipeline using JSON output mode
 
 ## Support
 
