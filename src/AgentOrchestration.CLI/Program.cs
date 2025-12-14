@@ -9,6 +9,12 @@ namespace AgentOrchestration.CLI;
 
 class Program
 {
+    private static readonly System.Text.Json.JsonSerializerOptions JsonOptions = new()
+    {
+        WriteIndented = true,
+        PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase
+    };
+
     static async Task<int> Main(string[] args)
     {
         // Check for JSON output flag
@@ -49,7 +55,7 @@ class Program
                     success = false,
                     error = ex.Message
                 };
-                Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(errorOutput, new System.Text.Json.JsonSerializerOptions { WriteIndented = true }));
+                Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(errorOutput, JsonOptions));
             }
             else
             {
@@ -122,6 +128,12 @@ public class Orchestrator : IOrchestrator
     private readonly ITaskExecutor _taskExecutor;
     private readonly IAIProvider _aiProvider;
 
+    private static readonly System.Text.Json.JsonSerializerOptions JsonOptions = new()
+    {
+        WriteIndented = true,
+        PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase
+    };
+
     public Orchestrator(
         IPlanningAgent planningAgent,
         ITaskExecutor taskExecutor,
@@ -151,7 +163,7 @@ public class Orchestrator : IOrchestrator
             if (jsonOutput)
             {
                 var errorOutput = new { success = false, error = "Task description cannot be empty" };
-                Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(errorOutput, new System.Text.Json.JsonSerializerOptions { WriteIndented = true }));
+                Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(errorOutput, JsonOptions));
             }
             else
             {
@@ -185,7 +197,7 @@ public class Orchestrator : IOrchestrator
             if (jsonOutput)
             {
                 var errorOutput = new { success = false, error = $"Failed to create plan: {ex.Message}" };
-                Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(errorOutput, new System.Text.Json.JsonSerializerOptions { WriteIndented = true }));
+                Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(errorOutput, JsonOptions));
             }
             else
             {
@@ -305,13 +317,7 @@ public class Orchestrator : IOrchestrator
             }
         };
 
-        var options = new System.Text.Json.JsonSerializerOptions
-        {
-            WriteIndented = true,
-            PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase
-        };
-
-        Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(output, options));
+        Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(output, JsonOptions));
     }
 
     private void DisplayResults(ExecutionPlan plan)
