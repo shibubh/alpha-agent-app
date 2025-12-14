@@ -24,7 +24,19 @@ public class PlanningAgent : IPlanningAgent
         if (string.IsNullOrWhiteSpace(techStack))
             throw new ArgumentException("Tech stack cannot be empty", nameof(techStack));
 
-        var systemMessage = @"You are an expert project planning agent. Your job is to break down user requirements into detailed, actionable tasks.
+        var systemMessage = @"You are an expert planning agent. Your job is to create detailed planning documents that describe WHAT should be in the final product, NOT HOW to develop it.
+
+Focus on:
+- User-facing features and components
+- Content structure and layout
+- Visual elements and design details
+- Functional requirements from user perspective
+
+DO NOT include:
+- Development environment setup
+- Coding tasks or technical implementation
+- Framework or technology choices
+- Deployment or DevOps tasks
 
 You must respond with a JSON object in the following format:
 {
@@ -39,22 +51,27 @@ You must respond with a JSON object in the following format:
 }
 
 Important guidelines:
-1. Break down the work into clear, sequential tasks
-2. Each task should be specific and actionable
-3. Consider the tech stack when planning tasks
-4. Order tasks logically (setup -> implementation -> testing -> deployment)
-5. Keep task descriptions clear and concise
+1. Break down the requirements into clear, detailed specifications
+2. Each task should describe a specific feature, component, or content area
+3. Focus on WHAT should exist, not HOW to build it
+4. Be specific about visual elements, content, and user interactions
+5. Keep descriptions clear and detailed
 6. Return ONLY valid JSON, no additional text or markdown";
 
-        var prompt = $@"Please create a detailed execution plan for the following requirement:
+        var prompt = $@"Please create a detailed planning document for the following requirement:
 
 **User Requirement:**
 {userPrompt}
 
-**Tech Stack:**
-{techStack}
+Create a comprehensive detailed plan that describes what should be in the final product. Focus on features, components, content, and design elements - NOT on development or implementation steps.
 
-Create a comprehensive plan with numbered tasks that will accomplish this goal.";
+For example, if creating a landing page:
+- Describe header section (logo position, navigation items, etc.)
+- Describe hero section (headline, image, call-to-action button, etc.)
+- Describe feature blocks (how many, what content each should have, etc.)
+- Describe footer (links, contact information, social media icons, etc.)
+
+Be specific and detailed about WHAT should exist, not HOW to build it.";
 
         var aiRequest = new AIRequest
         {

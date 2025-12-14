@@ -132,17 +132,9 @@ public class Orchestrator : IOrchestrator
             return;
         }
 
-        Console.WriteLine("\nPlease specify your tech stack (e.g., .NET, Python, React, etc.):");
-        Console.Write("➤ ");
-        var techStack = Console.ReadLine();
-
-        if (string.IsNullOrWhiteSpace(techStack))
-        {
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine("❌ Tech stack cannot be empty!");
-            Console.ResetColor();
-            return;
-        }
+        // Tech stack is no longer required for planning agent
+        // Planning agent focuses on WHAT to build, not HOW
+        var techStack = "Not specified - Planning phase only";
 
         Console.WriteLine();
         Console.WriteLine("═══════════════════════════════════════════════════════");
@@ -167,46 +159,55 @@ public class Orchestrator : IOrchestrator
         // Display plan
         DisplayPlan(plan);
 
-        // Ask for confirmation
+        // Planning is complete - inform user about next steps
         Console.WriteLine();
-        Console.Write("Would you like to execute this plan? (yes/no): ");
+        Console.ForegroundColor = ConsoleColor.Green;
+        Console.WriteLine("✅ Detailed planning completed!");
+        Console.ResetColor();
+        Console.WriteLine();
+        Console.WriteLine("ℹ️  This detailed plan describes WHAT should be built.");
+        Console.WriteLine("ℹ️  Next step: Pass this plan to a Coding Agent to handle implementation.");
+        Console.WriteLine();
+        
+        // Ask if user wants to proceed with execution (kept for backward compatibility)
+        Console.Write("Would you like to proceed with execution guidance? (yes/no): ");
         var confirmation = Console.ReadLine();
 
-        if (!confirmation?.Equals("yes", StringComparison.OrdinalIgnoreCase) ?? true)
+        if (confirmation?.Equals("yes", StringComparison.OrdinalIgnoreCase) ?? false)
         {
-            Console.WriteLine("❌ Execution cancelled by user.");
-            return;
+            Console.WriteLine();
+            Console.WriteLine("═══════════════════════════════════════════════════════");
+            Console.WriteLine("🚀 Generating Implementation Guidance...");
+            Console.WriteLine("═══════════════════════════════════════════════════════");
+            Console.WriteLine();
+
+            // Execute plan
+            await _taskExecutor.ExecutePlanAsync(plan);
+
+            // Display results
+            DisplayResults(plan);
         }
-
-        Console.WriteLine();
-        Console.WriteLine("═══════════════════════════════════════════════════════");
-        Console.WriteLine("🚀 Executing Tasks...");
-        Console.WriteLine("═══════════════════════════════════════════════════════");
-        Console.WriteLine();
-
-        // Execute plan
-        await _taskExecutor.ExecutePlanAsync(plan);
-
-        // Display results
-        DisplayResults(plan);
+        else
+        {
+            Console.WriteLine("✅ Planning phase completed. Plan is ready for the Coding Agent.");
+        }
     }
 
     private void DisplayPlan(ExecutionPlan plan)
     {
         Console.ForegroundColor = ConsoleColor.Cyan;
         Console.WriteLine($"📌 Goal: {plan.Goal}");
-        Console.WriteLine($"🔧 Tech Stack: {plan.TechStack}");
         Console.WriteLine($"📄 Description: {plan.Description}");
-        Console.WriteLine($"📊 Total Tasks: {plan.Tasks.Count}");
+        Console.WriteLine($"📊 Total Planning Items: {plan.Tasks.Count}");
         Console.ResetColor();
         Console.WriteLine();
 
         foreach (var task in plan.Tasks.OrderBy(t => t.Order))
         {
             Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine($"Task {task.Order}: {task.Title}");
+            Console.WriteLine($"{task.Order}. {task.Title}");
             Console.ResetColor();
-            Console.WriteLine($"  └─ {task.Description}");
+            Console.WriteLine($"   {task.Description}");
             Console.WriteLine();
         }
     }
