@@ -134,7 +134,6 @@ public class Orchestrator : IOrchestrator
 
         // Tech stack is no longer required for planning agent
         // Planning agent focuses on WHAT to build, not HOW
-        var techStack = "Not specified - Planning phase only";
 
         Console.WriteLine();
         Console.WriteLine("═══════════════════════════════════════════════════════");
@@ -146,7 +145,7 @@ public class Orchestrator : IOrchestrator
         ExecutionPlan plan;
         try
         {
-            plan = await _planningAgent.CreatePlanAsync(userPrompt, techStack);
+            plan = await _planningAgent.CreatePlanAsync(userPrompt);
         }
         catch (Exception ex)
         {

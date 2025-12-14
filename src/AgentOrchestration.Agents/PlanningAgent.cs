@@ -16,13 +16,10 @@ public class PlanningAgent : IPlanningAgent
         _aiProvider = aiProvider ?? throw new ArgumentNullException(nameof(aiProvider));
     }
 
-    public async Task<ExecutionPlan> CreatePlanAsync(string userPrompt, string techStack, CancellationToken cancellationToken = default)
+    public async Task<ExecutionPlan> CreatePlanAsync(string userPrompt, string? techStack = null, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(userPrompt))
             throw new ArgumentException("User prompt cannot be empty", nameof(userPrompt));
-
-        if (string.IsNullOrWhiteSpace(techStack))
-            throw new ArgumentException("Tech stack cannot be empty", nameof(techStack));
 
         var systemMessage = @"You are an expert planning agent. Your job is to create detailed planning documents that describe WHAT should be in the final product, NOT HOW to develop it.
 
@@ -103,7 +100,7 @@ Be specific and detailed about WHAT should exist, not HOW to build it.";
         {
             Id = Guid.NewGuid().ToString(),
             Goal = userPrompt,
-            TechStack = techStack,
+            TechStack = techStack ?? "Not applicable - Planning phase",
             Description = planData.Description,
             Tasks = tasks,
             Status = PlanStatus.Created
