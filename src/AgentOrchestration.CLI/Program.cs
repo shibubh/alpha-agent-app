@@ -7,14 +7,30 @@ using AgentOrchestration.Core.Models;
 
 namespace AgentOrchestration.CLI;
 
+internal static class JsonConfiguration
+{
+    public static readonly System.Text.Json.JsonSerializerOptions Options = new()
+    {
+        WriteIndented = true,
+        PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase
+    };
+}
+
 class Program
 {
+
     static async Task<int> Main(string[] args)
     {
-        Console.WriteLine("╔═══════════════════════════════════════════════════════╗");
-        Console.WriteLine("║    Agent Orchestration System - Planning Agent       ║");
-        Console.WriteLine("╚═══════════════════════════════════════════════════════╝");
-        Console.WriteLine();
+        // Check for JSON output flag
+        bool jsonOutput = args.Contains("--json") || args.Contains("-j");
+        
+        if (!jsonOutput)
+        {
+            Console.WriteLine("╔═══════════════════════════════════════════════════════╗");
+            Console.WriteLine("║    Agent Orchestration System - Planning Agent       ║");
+            Console.WriteLine("╚═══════════════════════════════════════════════════════╝");
+            Console.WriteLine();
+        }
 
         try
         {
@@ -30,15 +46,27 @@ class Program
 
             // Run the orchestration
             var orchestrator = serviceProvider.GetRequiredService<IOrchestrator>();
-            await orchestrator.RunAsync();
+            await orchestrator.RunAsync(jsonOutput);
 
             return 0;
         }
         catch (Exception ex)
         {
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine($"\n❌ Fatal Error: {ex.Message}");
-            Console.ResetColor();
+            if (jsonOutput)
+            {
+                var errorOutput = new
+                {
+                    success = false,
+                    error = ex.Message
+                };
+                Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(errorOutput, JsonConfiguration.Options));
+            }
+            else
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine($"\n❌ Fatal Error: {ex.Message}");
+                Console.ResetColor();
+            }
             return 1;
         }
     }
@@ -92,7 +120,7 @@ class Program
 /// </summary>
 public interface IOrchestrator
 {
-    Task RunAsync();
+    Task RunAsync(bool jsonOutput = false);
 }
 
 /// <summary>
@@ -114,32 +142,47 @@ public class Orchestrator : IOrchestrator
         _aiProvider = aiProvider ?? throw new ArgumentNullException(nameof(aiProvider));
     }
 
-    public async Task RunAsync()
+    public async Task RunAsync(bool jsonOutput = false)
     {
-        Console.WriteLine($"🤖 Using AI Provider: {_aiProvider.ProviderName}");
-        Console.WriteLine();
+        if (!jsonOutput)
+        {
+            Console.WriteLine($"🤖 Using AI Provider: {_aiProvider.ProviderName}");
+            Console.WriteLine();
 
-        // Get user input
-        Console.WriteLine("Please describe your task:");
-        Console.Write("➤ ");
+            // Get user input
+            Console.WriteLine("Please describe your task:");
+            Console.Write("➤ ");
+        }
+        
         var userPrompt = Console.ReadLine();
 
         if (string.IsNullOrWhiteSpace(userPrompt))
         {
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine("❌ Task description cannot be empty!");
-            Console.ResetColor();
+            if (jsonOutput)
+            {
+                var errorOutput = new { success = false, error = "Task description cannot be empty" };
+                Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(errorOutput, JsonConfiguration.Options));
+            }
+            else
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("❌ Task description cannot be empty!");
+                Console.ResetColor();
+            }
             return;
         }
 
         // Tech stack is no longer required for planning agent
         // Planning agent focuses on WHAT to build, not HOW
 
-        Console.WriteLine();
-        Console.WriteLine("═══════════════════════════════════════════════════════");
-        Console.WriteLine("📋 Creating Execution Plan...");
-        Console.WriteLine("═══════════════════════════════════════════════════════");
-        Console.WriteLine();
+        if (!jsonOutput)
+        {
+            Console.WriteLine();
+            Console.WriteLine("═══════════════════════════════════════════════════════");
+            Console.WriteLine("📋 Creating Execution Plan...");
+            Console.WriteLine("═══════════════════════════════════════════════════════");
+            Console.WriteLine();
+        }
 
         // Create plan
         ExecutionPlan plan;
@@ -149,46 +192,62 @@ public class Orchestrator : IOrchestrator
         }
         catch (Exception ex)
         {
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine($"❌ Failed to create plan: {ex.Message}");
-            Console.ResetColor();
+            if (jsonOutput)
+            {
+                var errorOutput = new { success = false, error = $"Failed to create plan: {ex.Message}" };
+                Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(errorOutput, JsonConfiguration.Options));
+            }
+            else
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine($"❌ Failed to create plan: {ex.Message}");
+                Console.ResetColor();
+            }
             return;
         }
 
-        // Display plan
-        DisplayPlan(plan);
-
-        // Planning is complete - inform user about next steps
-        Console.WriteLine();
-        Console.ForegroundColor = ConsoleColor.Green;
-        Console.WriteLine("✅ Detailed planning completed!");
-        Console.ResetColor();
-        Console.WriteLine();
-        Console.WriteLine("ℹ️  This detailed plan describes WHAT should be built.");
-        Console.WriteLine("ℹ️  Next step: Pass this plan to a Coding Agent to handle implementation.");
-        Console.WriteLine();
-        
-        // Ask if user wants to proceed with execution (kept for backward compatibility)
-        Console.Write("Would you like to proceed with execution guidance? (yes/no): ");
-        var confirmation = Console.ReadLine();
-
-        if (confirmation?.Equals("yes", StringComparison.OrdinalIgnoreCase) ?? false)
+        if (jsonOutput)
         {
-            Console.WriteLine();
-            Console.WriteLine("═══════════════════════════════════════════════════════");
-            Console.WriteLine("🚀 Generating Implementation Guidance...");
-            Console.WriteLine("═══════════════════════════════════════════════════════");
-            Console.WriteLine();
-
-            // Execute plan
-            await _taskExecutor.ExecutePlanAsync(plan);
-
-            // Display results
-            DisplayResults(plan);
+            // Output as JSON
+            DisplayPlanJson(plan);
         }
         else
         {
-            Console.WriteLine("✅ Planning phase completed. Plan is ready for the Coding Agent.");
+            // Display plan
+            DisplayPlan(plan);
+
+            // Planning is complete - inform user about next steps
+            Console.WriteLine();
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine("✅ Detailed planning completed!");
+            Console.ResetColor();
+            Console.WriteLine();
+            Console.WriteLine("ℹ️  This detailed plan describes WHAT should be built.");
+            Console.WriteLine("ℹ️  Next step: Pass this plan to a Coding Agent to handle implementation.");
+            Console.WriteLine();
+            
+            // Ask if user wants to proceed with execution (kept for backward compatibility)
+            Console.Write("Would you like to proceed with execution guidance? (yes/no): ");
+            var confirmation = Console.ReadLine();
+
+            if (confirmation?.Equals("yes", StringComparison.OrdinalIgnoreCase) ?? false)
+            {
+                Console.WriteLine();
+                Console.WriteLine("═══════════════════════════════════════════════════════");
+                Console.WriteLine("🚀 Generating Implementation Guidance...");
+                Console.WriteLine("═══════════════════════════════════════════════════════");
+                Console.WriteLine();
+
+                // Execute plan
+                await _taskExecutor.ExecutePlanAsync(plan);
+
+                // Display results
+                DisplayResults(plan);
+            }
+            else
+            {
+                Console.WriteLine("✅ Planning phase completed. Plan is ready for the Coding Agent.");
+            }
         }
     }
 
@@ -207,8 +266,53 @@ public class Orchestrator : IOrchestrator
             Console.WriteLine($"{task.Order}. {task.Title}");
             Console.ResetColor();
             Console.WriteLine($"   {task.Description}");
+            if (task.Commands != null && task.Commands.Any())
+            {
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine($"   💻 Commands:");
+                foreach (var cmd in task.Commands)
+                {
+                    Console.WriteLine($"      - {cmd}");
+                }
+                Console.ResetColor();
+            }
+            if (!string.IsNullOrWhiteSpace(task.PostCommand))
+            {
+                Console.ForegroundColor = ConsoleColor.Cyan;
+                Console.WriteLine($"   ✅ Post-Command: {task.PostCommand}");
+                Console.ResetColor();
+            }
             Console.WriteLine();
         }
+    }
+
+    private void DisplayPlanJson(ExecutionPlan plan)
+    {
+        var output = new
+        {
+            success = true,
+            plan = new
+            {
+                id = plan.Id,
+                goal = plan.Goal,
+                description = plan.Description,
+                techStack = plan.TechStack,
+                status = plan.Status.ToString(),
+                createdAt = plan.CreatedAt,
+                tasks = plan.Tasks.OrderBy(t => t.Order).Select(t => new
+                {
+                    id = t.Id,
+                    title = t.Title,
+                    description = t.Description,
+                    commands = t.Commands,
+                    postCommand = t.PostCommand,
+                    order = t.Order,
+                    status = t.Status.ToString()
+                }).ToList()
+            }
+        };
+
+        Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(output, JsonConfiguration.Options));
     }
 
     private void DisplayResults(ExecutionPlan plan)

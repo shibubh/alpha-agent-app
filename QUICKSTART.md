@@ -66,6 +66,19 @@ dotnet run
 dotnet run --project src/AgentOrchestration.CLI/AgentOrchestration.CLI.csproj
 ```
 
+### Option D: JSON Output Mode (For Automation)
+```bash
+dotnet run --project src/AgentOrchestration.CLI/AgentOrchestration.CLI.csproj -- --json
+# or use the short flag:
+dotnet run --project src/AgentOrchestration.CLI/AgentOrchestration.CLI.csproj -- -j
+```
+
+**JSON Mode Features:**
+- Machine-readable output for automation tools
+- Each task includes executable terminal commands when applicable
+- No interactive prompts or colored output
+- Perfect for CI/CD pipelines and task automation
+
 ## Step 5: Use the System
 
 When the application starts:
@@ -162,12 +175,74 @@ To switch from ChatGPT to Claude or vice versa:
 - Ensure .NET 10 SDK is installed: `dotnet --version`
 - Clean and rebuild: `dotnet clean && dotnet build`
 
+## Using JSON Output for Automation
+
+The system supports a JSON output mode that's perfect for automation:
+
+```bash
+# Pipe your task description and get JSON output
+echo "Create a Node.js Express API" | dotnet run --project src/AgentOrchestration.CLI/AgentOrchestration.CLI.csproj -- --json
+```
+
+**Sample JSON Output:**
+```json
+{
+  "success": true,
+  "plan": {
+    "goal": "Create a Node.js Express API",
+    "description": "REST API with Express framework",
+    "tasks": [
+      {
+        "title": "Initialize Project",
+        "description": "Create package.json",
+        "commands": ["npm init -y"],
+        "postCommand": "test -f package.json && echo 'Success'",
+        "order": 1
+      },
+      {
+        "title": "Install Dependencies",
+        "description": "Install Express and middleware",
+        "commands": [
+          "npm install express",
+          "npm install body-parser",
+          "npm install cors"
+        ],
+        "postCommand": "npm list express",
+        "order": 2
+      }
+    ]
+  }
+}
+```
+
+**Understanding Command Types:**
+- **commands**: An array of commands to execute sequentially (e.g., `["npm install express", "npm install cors"]`)
+- **postCommand**: Runs after all commands to verify success (e.g., `npm list express`)
+
+You can then parse this JSON and execute the commands automatically:
+```bash
+# Example using jq to extract and run all commands in sequence
+echo "Create a Node.js API" | dotnet run --project src/AgentOrchestration.CLI/AgentOrchestration.CLI.csproj -- --json | \
+  jq -c '.plan.tasks[]' | while read task; do
+    # Execute all commands in the array
+    echo "$task" | jq -r '.commands[]? // empty' | while read cmd; do
+      echo "Executing: $cmd"
+      eval "$cmd"
+    done
+    
+    # Execute post-command if present
+    post=$(echo "$task" | jq -r '.postCommand // empty')
+    [ -n "$post" ] && echo "Verifying: $post" && eval "$post"
+  done
+```
+
 ## Next Steps
 
 - Read the full [README.md](README.md) for detailed architecture information
+- Check [EXAMPLE_OUTPUT.md](EXAMPLE_OUTPUT.md) for more JSON output examples
 - Customize the AI prompts in the agent implementations
 - Extend the system with additional agents
-- Integrate with your CI/CD pipeline
+- Integrate with your CI/CD pipeline using JSON output mode
 
 ## Support
 

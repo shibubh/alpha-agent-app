@@ -21,19 +21,15 @@ public class PlanningAgent : IPlanningAgent
         if (string.IsNullOrWhiteSpace(userPrompt))
             throw new ArgumentException("User prompt cannot be empty", nameof(userPrompt));
 
-        var systemMessage = @"You are an expert planning agent. Your job is to create detailed planning documents that describe WHAT should be in the final product, NOT HOW to develop it.
+        var systemMessage = @"You are an expert planning agent. Your job is to create detailed planning documents that describe WHAT should be in the final product and provide executable terminal commands when applicable.
 
 Focus on:
 - User-facing features and components
 - Content structure and layout
 - Visual elements and design details
 - Functional requirements from user perspective
-
-DO NOT include:
-- Development environment setup
-- Coding tasks or technical implementation
-- Framework or technology choices
-- Deployment or DevOps tasks
+- Terminal commands for setup, installation, or execution steps
+- Post-commands for verification
 
 You must respond with a JSON object in the following format:
 {
@@ -42,6 +38,8 @@ You must respond with a JSON object in the following format:
     {
       ""title"": ""Task title"",
       ""description"": ""Detailed task description"",
+      ""commands"": [""command1"", ""command2""],
+      ""postCommand"": ""command to verify or run after main task (optional, e.g., verify installation)"",
       ""order"": 1
     }
   ]
@@ -50,10 +48,14 @@ You must respond with a JSON object in the following format:
 Important guidelines:
 1. Break down the requirements into clear, detailed specifications
 2. Each task should describe a specific feature, component, or content area
-3. Focus on WHAT should exist, not HOW to build it
-4. Be specific about visual elements, content, and user interactions
-5. Keep descriptions clear and detailed
-6. Return ONLY valid JSON, no additional text or markdown";
+3. Include terminal commands as an array when tasks involve installation, setup, or execution (e.g., ['npm install express', 'npm install body-parser'])
+4. Multiple related commands can be included in the commands array to be executed sequentially
+5. Use postCommand for verification after commands complete (e.g., 'npm list express', 'flask --version', 'dotnet test', 'curl http://localhost:3000')
+6. For descriptive/design tasks without commands, omit the commands field or use empty array
+7. Commands should be complete and executable as-is
+8. Be specific about visual elements, content, and user interactions
+9. Keep descriptions clear and detailed
+10. Return ONLY valid JSON, no additional text or markdown";
 
         var prompt = $@"Please create a detailed planning document for the following requirement:
 
@@ -92,6 +94,8 @@ Be specific and detailed about WHAT should exist, not HOW to build it.";
             Id = Guid.NewGuid().ToString(),
             Title = t.Title,
             Description = t.Description,
+            Commands = t.Commands,
+            PostCommand = t.PostCommand,
             Order = t.Order > 0 ? t.Order : index + 1,
             Status = Core.Models.TaskStatus.Pending
         }).OrderBy(t => t.Order).ToList();
@@ -162,6 +166,8 @@ Be specific and detailed about WHAT should exist, not HOW to build it.";
     {
         public string Title { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
+        public List<string>? Commands { get; set; }
+        public string? PostCommand { get; set; }
         public int Order { get; set; }
     }
 }

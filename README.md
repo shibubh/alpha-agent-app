@@ -109,6 +109,26 @@ dotnet build AgentOrchestration.sln
 dotnet run --project src/AgentOrchestration.CLI/AgentOrchestration.CLI.csproj
 ```
 
+### JSON Output Mode
+
+For automated workflows, you can use JSON output mode to get machine-readable results:
+
+```bash
+dotnet run --project src/AgentOrchestration.CLI/AgentOrchestration.CLI.csproj -- --json
+```
+
+Or use the short flag:
+
+```bash
+dotnet run --project src/AgentOrchestration.CLI/AgentOrchestration.CLI.csproj -- -j
+```
+
+In JSON mode:
+- The agent outputs structured JSON instead of formatted console text
+- Each task includes a `commands` array with executable terminal commands when applicable
+- The output can be parsed by other tools for automated execution
+- No interactive prompts or colored output
+
 ### Example Session
 
 ```
@@ -149,6 +169,83 @@ Please describe your task:
 ℹ️  This detailed plan describes WHAT should be built.
 ℹ️  Next step: Pass this plan to a Coding Agent to handle implementation.
 ```
+
+### Example JSON Output
+
+When using `--json` flag, the output is machine-readable:
+
+```json
+{
+  "success": true,
+  "plan": {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "goal": "Create a Node.js Express REST API",
+    "description": "A REST API with Express framework for handling CRUD operations",
+    "techStack": "Not applicable - Planning phase",
+    "status": "Created",
+    "createdAt": "2024-12-14T02:00:00Z",
+    "tasks": [
+      {
+        "id": "task-1",
+        "title": "Initialize Node.js Project",
+        "description": "Set up a new Node.js project with package.json",
+        "commands": ["npm init -y"],
+        "postCommand": "test -f package.json && echo 'package.json created successfully'",
+        "order": 1,
+        "status": "Pending"
+      },
+      {
+        "id": "task-2",
+        "title": "Install Express Framework and Middleware",
+        "description": "Install Express.js and required dependencies",
+        "commands": [
+          "npm install express",
+          "npm install body-parser",
+          "npm install cors"
+        ],
+        "postCommand": "npm list express",
+        "order": 2,
+        "status": "Pending"
+      },
+      {
+        "id": "task-3",
+        "title": "Install Development Dependencies",
+        "description": "Install nodemon for development",
+        "commands": ["npm install --save-dev nodemon"],
+        "postCommand": "npm list nodemon",
+        "order": 3,
+        "status": "Pending"
+      },
+      {
+        "id": "task-4",
+        "title": "Create API Endpoints",
+        "description": "Define REST API endpoints for GET, POST, PUT, DELETE operations with proper routing and middleware",
+        "commands": null,
+        "postCommand": null,
+        "order": 4,
+        "status": "Pending"
+      },
+      {
+        "id": "task-5",
+        "title": "Start Development Server",
+        "description": "Run the Express server in development mode",
+        "commands": ["npm run dev"],
+        "postCommand": "curl -s http://localhost:3000/health",
+        "order": 5,
+        "status": "Pending"
+      }
+    ]
+  }
+}
+```
+
+Notice that:
+- Tasks with installation or setup steps include executable `commands` array
+- **commands**: An array of commands to execute sequentially (e.g., install multiple packages)
+- **postCommand**: Runs after all commands to verify success or test the result
+- Multiple related commands can be grouped in a single task's commands array
+- Descriptive tasks (like "Create API Endpoints") have `null` or empty commands
+- The JSON can be parsed by automation tools to execute commands automatically in sequence
 
 ## 🏛️ System Components
 

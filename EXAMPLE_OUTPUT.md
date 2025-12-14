@@ -206,11 +206,136 @@ Please describe your task:
 ℹ️  Next step: Pass this plan to a Coding Agent to handle implementation.
 ```
 
+## Example 5: JSON Output Mode
+
+### User Input
+```
+Task: Create a Python Flask web application with database
+```
+
+### Command
+```bash
+dotnet run --project src/AgentOrchestration.CLI/AgentOrchestration.CLI.csproj -- --json
+```
+
+### JSON Output
+
+```json
+{
+  "success": true,
+  "plan": {
+    "id": "abc123-def456",
+    "goal": "Create a Python Flask web application with database",
+    "description": "A complete Flask web application with database integration for data persistence",
+    "techStack": "Not applicable - Planning phase",
+    "status": "Created",
+    "createdAt": "2024-12-14T02:00:00Z",
+    "tasks": [
+      {
+        "id": "task-1",
+        "title": "Set Up Python Virtual Environment",
+        "description": "Create and activate a Python virtual environment for isolated dependencies",
+        "commands": [
+          "python3 -m venv venv",
+          "source venv/bin/activate"
+        ],
+        "postCommand": "which python",
+        "order": 1,
+        "status": "Pending"
+      },
+      {
+        "id": "task-2",
+        "title": "Install Flask Framework and Extensions",
+        "description": "Install Flask web framework and essential extensions",
+        "commands": [
+          "pip install flask",
+          "pip install flask-cors",
+          "pip install python-dotenv"
+        ],
+        "postCommand": "flask --version",
+        "order": 2,
+        "status": "Pending"
+      },
+      {
+        "id": "task-3",
+        "title": "Install Database Packages",
+        "description": "Install Flask-SQLAlchemy and database drivers",
+        "commands": [
+          "pip install flask-sqlalchemy",
+          "pip install sqlalchemy",
+          "pip install flask-migrate"
+        ],
+        "postCommand": "pip list | grep -i sqlalchemy",
+        "order": 3,
+        "status": "Pending"
+      },
+      {
+        "id": "task-4",
+        "title": "Define Application Routes",
+        "description": "Create Flask routes for home page, about page, and API endpoints with proper HTTP methods",
+        "commands": null,
+        "postCommand": null,
+        "order": 4,
+        "status": "Pending"
+      },
+      {
+        "id": "task-5",
+        "title": "Configure Database Models",
+        "description": "Define SQLAlchemy models for database tables with relationships and constraints",
+        "commands": null,
+        "postCommand": null,
+        "order": 5,
+        "status": "Pending"
+      },
+      {
+        "id": "task-6",
+        "title": "Initialize Database",
+        "description": "Create database tables from models",
+        "commands": [
+          "flask db init",
+          "flask db migrate -m 'Initial migration'",
+          "flask db upgrade"
+        ],
+        "postCommand": "test -d migrations && echo 'Database initialized successfully'",
+        "order": 6,
+        "status": "Pending"
+      },
+      {
+        "id": "task-7",
+        "title": "Run Development Server",
+        "description": "Start Flask development server with debugging enabled",
+        "commands": [
+          "export FLASK_APP=app.py",
+          "export FLASK_ENV=development",
+          "flask run --debug"
+        ],
+        "postCommand": "curl -s http://localhost:5000/health || echo 'Server starting...'",
+        "order": 7,
+        "status": "Pending"
+      }
+    ]
+  }
+}
+```
+
+### Benefits of JSON Output
+
+- **Automation-Ready**: Other tools can parse and execute commands automatically
+- **Terminal Commands Array**: Each task includes an array of executable commands to run sequentially
+- **Multiple Commands**: Group related commands together (e.g., `["pip install flask", "pip install flask-cors"]`)
+- **Post-Commands**: Verify successful execution and test results after all commands complete (e.g., `flask --version`, `curl http://localhost:5000`)
+- **Machine-Readable**: Perfect for CI/CD pipelines and automation workflows
+- **Structured Data**: Easy to integrate with task runners, build systems, or orchestration tools
+- **Sequential Execution**: Commands array ensures proper execution order within each task
+
 ## Notes
 
-- Planning Agent now focuses on WHAT to build (features, UI, content) not HOW to build it
+- Planning Agent now focuses on WHAT to build (features, UI, content) and provides executable commands when applicable
+- JSON output mode (`--json` or `-j`) provides machine-readable output for automation
+- Tasks include `commands` array with terminal commands for installation, setup, and execution steps
+- Descriptive tasks without commands have `null` or empty commands array
 - No tech stack required - planning is technology-agnostic
 - Plans describe user-facing features and design elements in detail
 - Development and coding tasks are handled separately by a Coding Agent
-- All outputs use colored console text for better readability
+- All outputs use colored console text for better readability (in non-JSON mode)
 - Planning phase is complete and ready to be passed to implementation phase
