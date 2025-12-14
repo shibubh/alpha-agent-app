@@ -85,30 +85,26 @@ The Agent Orchestration System is built using clean architecture principles with
 - Communicates with AI providers
 - Parses AI responses into structured plans
 - Handles JSON extraction from markdown code blocks
-- Creates ordered task lists
+- Creates detailed planning documents focused on WHAT to build
+- Does NOT include development tasks or tech stack considerations
 
 **Workflow**:
-1. Receives user prompt and tech stack
-2. Constructs detailed prompt for AI
+1. Receives user prompt
+2. Constructs detailed prompt for AI focused on product features and design
 3. Sends request to AI provider
 4. Parses JSON response
-5. Creates ExecutionPlan with ordered tasks
+5. Creates ExecutionPlan with detailed planning items describing features, UI, and content
 
-#### TaskExecutor
-- Executes tasks sequentially
-- Tracks task status and progress
-- Handles errors gracefully
-- Continues execution even if individual tasks fail
+#### TaskExecutor (Optional - for backward compatibility)
+- Can provide additional implementation guidance
+- Note: Separate from Planning Agent's core purpose
+- A dedicated Coding Agent should handle actual implementation
 
 **Workflow**:
 1. Receives ExecutionPlan
-2. Orders tasks by priority
-3. For each task:
-   - Sets status to InProgress
-   - Requests implementation guidance from AI
-   - Stores result
-   - Updates status (Completed/Failed)
-4. Returns updated plan
+2. Can optionally provide implementation guidance
+3. Planning phase is complete before this step
+4. Implementation should be handled by a separate Coding Agent
 
 **Dependencies**:
 - AgentOrchestration.Core
@@ -172,25 +168,18 @@ HttpClient factory ensures proper resource management and allows configuration o
 ## Data Flow
 
 ```
-User Input (Prompt + Tech Stack)
+User Input (Prompt)
     ↓
 Planning Agent
     ↓
 AI Provider (ChatGPT/Claude)
     ↓
-Execution Plan (with Tasks)
+Detailed Planning Document
+(Features, UI, Content - WHAT to build)
     ↓
-User Confirmation
+Planning Complete
     ↓
-Task Executor
-    ↓
-    For each Task:
-        ↓
-    AI Provider (for implementation)
-        ↓
-    Task Result
-    ↓
-Execution Summary
+[Next: Pass to Coding Agent for implementation]
 ```
 
 ## Configuration Management
